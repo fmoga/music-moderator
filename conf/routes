@@ -1,0 +1,24 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Home page
+GET     /                                       Application.index
+GET     /vote/{id}                              Application.vote
+GET     /voteUp/{id}                            Application.voteUp
+GET     /voteDown/{id}                          Application.voteDown
+GET     /artwork/{id}                           Application.artwork
+GET     /player									Application.player
+GET     /track/{id} 							Application.track
+GET     /top5									Application.top5
+GET     /next									Application.next
+GET     /markAsPlayed                           Application.markAsPlayed
+
+# Ignore favicon requests
+GET     /favicon.ico                            404
+
+# Map static resources from the /app/public folder to the /public path
+GET     /public/                                staticDir:public
+
+# Catch all
+*       /{controller}/{action}                  {controller}.{action}

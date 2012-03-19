@@ -1,0 +1,32 @@
+#{extends 'main.html' /}
+#{set title:'Music Moderator' /}
+#{set 'moreMeta'}
+    <meta name="viewport" content="width=device-width, initial-scale=1"> 
+#{/set}
+#{set 'moreStyles'}
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.0/jquery.mobile-1.0.min.css" />
+#{/set}
+#{set 'moreScripts'}
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.6.4.min.js"></script>
+    <script type="text/javascript" src="http://code.jquery.com/mobile/1.0/jquery.mobile-1.0.min.js"></script>
+#{/set}
+
+<div data-role="page" data-url="/">
+  <div data-role="header" data-theme="b">
+  	<a href="/" data-role="button" data-direction="reverse" data-icon="refresh" data-iconpos="notext" data-ajax="false"></a>  
+  	<h1>Music Moderator</h1>
+  	<a href="/player" data-role="button" data-icon="gear" data-iconpos="notext" data-ajax="false"></a>
+  </div>
+  <div data-role="content">
+ 	<ul data-role="listview" data-inset="true" data-filter="true">
+		#{list items:top, as:'track'}
+		    <li><a href="/vote/${track.id}">
+		      <img src="/artwork/${track.id}"/>
+		      <h3>${track.name}</h3>
+		      <p><strong>${track.artist}</strong></p>
+              <span class="ui-li-count">${track.votes}</span>
+		    </a></li>
+		#{/list}
+	</ul>
+  </div>
+</div>

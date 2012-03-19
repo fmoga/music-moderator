@@ -1,0 +1,128 @@
+#{extends 'main.html' /}
+#{set title:'Music Moderator' /}
+#{set 'moreMeta'}
+    <meta name="viewport" content="width=device-width, initial-scale=1"> 
+#{/set}
+#{set 'moreStyles'}
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.0/jquery.mobile-1.0.min.css" />
+    <link rel="stylesheet" type="text/css" href="/public/soundManager/360player.css" />
+	<link rel="stylesheet" type="text/css" href="/public/soundManager/360player-visualization.css" /> 
+#{/set}
+#{set 'moreScripts'}
+    <script type="text/javascript" src="http://code.jquery.com/mobile/1.0/jquery.mobile-1.0.min.js"></script>
+    <script type="text/javascript" src="/public/soundManager/soundmanager2-nodebug-jsmin.js"></script>
+    <script type="text/javascript" src="/public/soundManager/berniecode-animator.js"></script>
+    <script type="text/javascript" src="/public/soundManager/360player.js"></script>
+    
+    <script type="text/javascript">
+		soundManager.url = '/public/soundManager/swf/';
+		soundManager.flashVersion = 9;
+		soundManager.useFlashBlock = false;
+		soundManager.waitForWindowLoad = true;
+		soundManager.setVolume(100);
+		soundManager.ontimeout(function() {
+			alert("Error was encountered when loading the player");
+		});
+		soundManager.onready(function() {
+			playNextTrack();
+		});
+		threeSixtyPlayer.config.autoPlay = true;
+		// threeSixtyPlayer.config.useEQData = true;
+		threeSixtyPlayer.config.useWaveformData = true;
+		threeSixtyPlayer.config.waveformDataLineRatio = 0;
+		threeSixtyPlayer.onfinish = function() {
+			playNextTrack();
+		}
+		
+		$(document).ready(function() {
+			updateTop();
+			$("#skip").click(function() {
+				playNextTrack();
+			});
+		});
+		
+		function playNextTrack() {
+			$.ajax({
+				url: '/next',
+				type: 'GET',
+				dataType: 'json',
+				success: function(data) {
+					$.ajax({
+						url: '/markAsPlayed',
+						type: 'GET',
+						data: 'id=' + data.id
+					});
+					$('#current_artwork').attr('src', '/artwork/' + data.id);
+					$('#current_title').text(data.artist + " - " + data.name);
+					soundManager.stopAll();
+					var player = $('.ui360');
+					player.empty();
+					// break threeSixtyPlayer cache
+					var random = Math.floor(Math.random()*1000000);
+					player.append('<a href="/track/' + data.id + '?ver=' + random + '" type="audio/mpeg"></a>');
+					threeSixtyPlayer.init();
+	    		},
+				error: function() {
+					alert("Error loading the track. Trying the next one...");
+					playNextTrack();
+				}
+			});		
+		}
+		
+		function updateTop() {
+			$.ajax({
+				url: '/top5',
+				type: 'GET',
+				dataType: 'json',
+				success: function(data) {
+					for (var i = 0; i < data.length; i++) {
+						$('#artwork_' + i).attr('src', '/artwork/' + data[i].id);
+						$('#title_' + i).text(data[i].name);
+						$('#artist_' + i).text(data[i].artist);
+						$('#votes_' + i).text(data[i].votes);	
+	    			}
+	    			queueUpdate();
+	    		},
+				error: function() {
+					queueUpdate();
+				}
+			});
+		}
+		
+		function queueUpdate() {
+			setTimeout(function() {
+				updateTop();
+			}, 5000);
+		}
+	</script>
+#{/set}
+
+<div data-role="page">
+  <div data-role="header" data-theme="b">
+	<a href="/" data-role="button" data-direction="reverse" data-icon="grid" data-iconpos="notext" data-ajax="false"></a>  
+    <h1>Music Moderator</h1>
+  </div>
+
+  <div data-role="content">
+    <ul data-role="listview" data-inset="true">
+	    <li>
+	      <img id="current_artwork" src="/public/images/musicnote.jpg"/>
+	      <h3 id="current_title">Fetching next track...</h3>
+	      <p><strong>Now playing</strong></p>
+	    </li>
+	</ul>
+  	<div class="ui360 ui360-vis">
+	</div>
+	<a href="#" id="skip" data-role="button" data-icon="arrow-r" data-iconpos="right">Skip to next track</a>
+	<ul data-role="listview" data-inset="true" id="top5">
+		%{for (int i = 0; i < topCount && i < 5; i++) { }%
+		    <li>
+		      <img id="artwork_${i}" src="/public/images/musicnote.jpg"/>
+		      <h3 id="title_${i}"></h3>
+		      <p><strong id="artist_${i}">Loading...</strong></p>
+		      <span id="votes_${i}" class="ui-li-count">0</span>
+		    </li>
+	    %{ } }%
+	</ul>
+  </div>
+</div>
